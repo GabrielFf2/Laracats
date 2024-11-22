@@ -5,10 +5,20 @@ use Core\App;
 use Core\Database;
 use Core\Session;
 use Core\Validator;
+use dao\INotesControllerDao;
 
-class NotesController
-{
-    function create()
+
+class NotesController implements INotesControllerDao{
+    private $db;
+    private $currentUserId;
+
+    public function __construct()
+    {
+        $this->db = App::resolve(Database::class);
+        $this->currentUserId = Session::get('user')['id'];
+    }
+
+    public function create()
     {
         view("notes/create.view.php", [
             'heading' => 'Create Note',
@@ -16,39 +26,20 @@ class NotesController
         ]);
     }
 
-    function destroy()
+    public function destroy()
     {
+        $note = $this->getNoteById($_POST['id']);
+        $this->authorizeNoteOwner($note);
 
-        $db = App::resolve(Database::class);
+        $this->db->query('DELETE FROM notes WHERE id = :id', ['id' => $_POST['id']]);
 
-        $currentUserId = Session::get('user')['id'];
-
-        $note = $db->query('select * from notes where id = :id', [
-            'id' => $_POST['id']
-        ])->findOrFail();
-
-        authorize($note['user_id'] === $currentUserId);
-
-        $db->query('delete from notes where id = :id', [
-            'id' => $_POST['id']
-        ]);
-
-        header('location: /notes');
-        exit();
+        $this->redirectTo('/notes');
     }
 
-    function edit($id)
+    public function edit()
     {
-        $db = App::resolve(Database::class);
-
-        $currentUserId = Session::get('user')['id'];
-
-
-        $note = $db->query('select * from notes where id = :id', [
-            'id' => $_GET['id']
-        ])->findOrFail();
-
-        authorize($note['user_id'] === $currentUserId);
+        $note = $this->getNoteById($_GET['id']);
+        $this->authorizeNoteOwner($note);
 
         view("notes/edit.view.php", [
             'heading' => 'Edit Note',
@@ -57,14 +48,10 @@ class NotesController
         ]);
     }
 
-    function index()
+    public function index()
     {
-
-        $currentUserId = Session::get('user')['id'];
-
-        $db = App::resolve(Database::class);
-        $notes = $db->query('select * from notes where user_id = :id',[
-            'id' => $currentUserId
+        $notes = $this->db->query('SELECT * FROM notes WHERE user_id = :id', [
+            'id' => $this->currentUserId
         ])->get();
 
         view("notes/index.view.php", [
@@ -73,93 +60,86 @@ class NotesController
         ]);
     }
 
-    function show()
+    public function show()
     {
-        $db = App::resolve(Database::class);
-
-        $currentUserId = Session::get('user')['id'];
-
-
-        $note = $db->query('select * from notes where id = :id', [
-            'id' => $_GET['id']
-        ])->findOrFail();
-
-        authorize($note['user_id'] === $currentUserId);
+        $note = $this->getNoteById($_GET['id']);
+        $this->authorizeNoteOwner($note);
 
         view("notes/show.view.php", [
             'heading' => 'Note',
             'note' => $note
         ]);
-
     }
 
-    function store(){
-        $db = App::resolve(Database::class);
-        $errors = [];
+    public function store()
+    {
+        $errors = $this->validateNoteBody($_POST['body'], 1, 1000);
 
-        if (! Validator::string($_POST['body'], 1, 1000)) {
-            $errors['body'] = 'A body of no more than 1,000 characters is required.';
-        }
-
-        if (! empty($errors)) {
+        if (!empty($errors)) {
             return view("notes/create.view.php", [
                 'heading' => 'Create Note',
                 'errors' => $errors
             ]);
         }
 
-        $currentUserId = Session::get('user')['id'];
-
-        $db->query('INSERT INTO notes(body, user_id) VALUES(:body, :user_id)', [
+        $this->db->query('INSERT INTO notes(body, user_id) VALUES(:body, :user_id)', [
             'body' => $_POST['body'],
-            'user_id' => $currentUserId
+            'user_id' => $this->currentUserId
         ]);
 
-        header('location: /notes');
-        die();
-
+        $this->redirectTo('/notes');
     }
 
-    function update()
+    public function update()
     {
-        $db = App::resolve(Database::class);
+        $note = $this->getNoteById($_POST['id']);
+        $this->authorizeNoteOwner($note);
 
-        $currentUserId = Session::get('user')['id'];
+        $errors = $this->validateNoteBody($_POST['body'], 1, 1000);
 
-
-// find the corresponding note
-        $note = $db->query('select * from notes where id = :id', [
-            'id' => $currentUserId
-        ])->findOrFail();
-
-// authorize that the current user can edit the note
-        authorize($note['user_id'] === $currentUserId);
-
-// validate the form
-        $errors = [];
-
-        if (! Validator::string($_POST['body'], 1, 10)) {
-            $errors['body'] = 'A body of no more than 1,000 characters is required.';
-        }
-
-// if no validation errors, update the record in the notes database table.
-        if (count($errors)) {
-            return view('notes/edit.view.php', [
+        if (!empty($errors)) {
+            return view("notes/edit.view.php", [
                 'heading' => 'Edit Note',
                 'errors' => $errors,
                 'note' => $note
             ]);
         }
 
-        $db->query('update notes set body = :body where id = :id', [
-            'id' => $currentUserId,
-            'body' => $_POST['body']
+        $this->db->query('UPDATE notes SET body = :body WHERE id = :id', [
+            'body' => $_POST['body'],
+            'id' => $_POST['id']
         ]);
 
-// redirect the user
-        header('location: /notes');
-        die();
-
+        $this->redirectTo('/notes');
     }
 
+    // ---------------------------
+    // Métodos auxiliares
+    // ---------------------------
+
+    private function getNoteById($id)
+    {
+        return $this->db->query('SELECT * FROM notes WHERE id = :id', ['id' => $id])
+            ->findOrFail();
+    }
+
+    private function authorizeNoteOwner($note)
+    {
+        authorize($note['user_id'] === $this->currentUserId);
+    }
+
+    private function validateNoteBody($body, $minLength, $maxLength)
+    {
+        $errors = [];
+        if (!Validator::string($body, $minLength, $maxLength)) {
+            $errors['body'] = "A body of no more than $maxLength characters is required.";
+        }
+        return $errors;
+    }
+
+    private function redirectTo($url)
+    {
+        header("Location: $url");
+        exit();
+    }
 }

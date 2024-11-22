@@ -1,5 +1,6 @@
 <?php
 
+namespace dao;
 interface INotesControllerDao
 {
     public function create();

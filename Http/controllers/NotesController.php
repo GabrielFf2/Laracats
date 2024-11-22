@@ -132,7 +132,7 @@ class NotesController implements INotesControllerDao{
     {
         $errors = [];
         if (!Validator::string($body, $minLength, $maxLength)) {
-            $errors['body'] = "A body of no more than $maxLength characters is required.";
+            $errors['body'] = "No pot tenir mes de $maxLength caracters.";
         }
         return $errors;
     }

@@ -10,6 +10,7 @@ $db = App::resolve(Database::class);
 $email = $_POST['email'];
 $password = $_POST['password'];
 
+
 $errors = [];
 if (!Validator::email($email)) {
    $errors['email'] = 'Please provide a valid email address.';
@@ -38,7 +39,15 @@ if ($user) {
         'password' => password_hash($password, PASSWORD_BCRYPT)
     ]);
 
-    login($user);
+    $user = $db->query('select * from users where email = :email', [
+        'email' => $email
+    ])->find();
+
+//    dd($user);
+    (new Authenticator)->login([
+        'email' => $email,
+        'id' => $user['id']
+    ]);
 
     header('location: /');
     exit();

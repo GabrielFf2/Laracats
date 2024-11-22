@@ -2,9 +2,9 @@
 
 namespace Core;
 
-use Core\Middleware\Authenticated;
-use Core\Middleware\Guest;
 use Core\Middleware\Middleware;
+use Http\controllers\NotesController;
+
 
 class Router
 {
@@ -60,11 +60,25 @@ class Router
             if ($route['uri'] === $uri && $route['method'] === strtoupper($method)) {
                 Middleware::resolve($route['middleware']);
 
-                return require base_path('Http/controllers/' . $route['controller']);
+                if (strpos($route['controller'], '@')) {
+                    list($controller, $method) = explode('@', $route['controller']);
+                     $this->useController($method);
+                }
+                else{
+                    return require base_path('Http/controllers/' . $route['controller']);
+                }
+    
             }
         }
 
         $this->abort();
+    }
+
+    function useController($method)
+    {
+        require base_path("Http/controllers/NotesController.php");
+        $NotesController = new NotesController;
+        call_user_func([$NotesController, $method]);
     }
 
     public function previousUrl()

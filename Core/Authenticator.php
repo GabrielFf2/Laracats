@@ -14,7 +14,8 @@ class Authenticator
         if ($user) {
             if (password_verify($password, $user['password'])) {
                 $this->login([
-                    'email' => $email
+                    'email' => $email,
+                    'id' => $user['id']
                 ]);
 
                 return true;
@@ -27,7 +28,8 @@ class Authenticator
     public function login($user)
     {
         $_SESSION['user'] = [
-            'email' => $user['email']
+            'email' => $user['email'],
+            'id' => $user['id']
         ];
 
         session_regenerate_id(true);

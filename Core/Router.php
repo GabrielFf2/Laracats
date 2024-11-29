@@ -4,6 +4,8 @@ namespace Core;
 
 use Core\Middleware\Middleware;
 use Http\controllers\NotesController;
+use Http\controllers\RegistrationController;
+use Http\controllers\SessionController;
 
 
 class Router
@@ -18,7 +20,6 @@ class Router
             'method' => $method,
             'middleware' => null
         ];
-
         return $this;
     }
 
@@ -62,23 +63,31 @@ class Router
 
                 if (strpos($route['controller'], '@')) {
                     list($controller, $method) = explode('@', $route['controller']);
-                     $this->useController($method);
-                }
-                else{
+                    $this->useController($controller, $method);
+                } else {
                     return require base_path('Http/controllers/' . $route['controller']);
                 }
-    
+
             }
         }
 
         $this->abort();
     }
 
-    function useController($method)
+    function useController($controller, $method)
     {
-        require base_path("Http/controllers/NotesController.php");
-        $NotesController = new NotesController;
-        call_user_func([$NotesController, $method]);
+        require base_path("Http/controllers/$controller.php");
+        if ($controller === 'RegistrationController') {
+            $RegistrationController = new RegistrationController;
+            call_user_func([$RegistrationController, $method]);
+        } else if ($controller === 'NotesController') {
+            $NotesController = new NotesController;
+            call_user_func([$NotesController, $method]);
+        } else if ($controller === 'SessionController') {
+            $SessionController = new SessionController;
+            call_user_func([$SessionController, $method]);
+        }
+
     }
 
     public function previousUrl()

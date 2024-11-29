@@ -9,6 +9,7 @@ class LoginForm
 {
     protected $errors = [];
 
+    //CREATE A CONSTRUCTOR THAT ACCEPTS AN ARRAY OF ATTRIBUTES
     public function __construct(public array $attributes)
     {
         if (!Validator::email($attributes['email'])) {

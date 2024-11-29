@@ -16,9 +16,11 @@ $router->patch('/note', 'NotesController@update')->only('auth');;
 $router->get('/notes/create', 'NotesController@create')->only('auth');;
 $router->post('/notes', 'NotesController@store')->only('auth');;
 
-$router->get('/register', 'registration/create.php')->only('guest');
-$router->post('/register', 'registration/store.php')->only('guest');
 
-$router->get('/login', 'session/create.php')->only('guest');
-$router->post('/session', 'session/store.php')->only('guest');
-$router->delete('/session', 'session/destroy.php')->only('auth');
+$router->get('/register', 'RegistrationController@create')->only('guest');
+$router->post('/register', 'RegistrationController@store')->only('guest');
+
+$router->get('/login', 'SessionController@create')->only('guest');
+$router->post('/session', 'SessionController@store')->only('guest');
+$router->delete('/session', 'SessionController@destroy')->only('auth');
+

@@ -55,11 +55,12 @@ class Router
         return $this;
     }
 
-    public function route($uri, $method)
+/*    public function route($uri, $method)
     {
         foreach ($this->routes as $route) {
             if ($route['uri'] === $uri && $route['method'] === strtoupper($method)) {
                 Middleware::resolve($route['middleware']);
+
 
                 if (strpos($route['controller'], '@')) {
                     list($controller, $method) = explode('@', $route['controller']);
@@ -88,7 +89,56 @@ class Router
             call_user_func([$SessionController, $method]);
         }
 
+    }*/
+    /**
+     * @throws \Exception
+     */
+    public function route($uri, $method){
+        foreach ($this->routes as $route) {
+            $pattern = preg_replace('/\{[^\}]+\}/', '([^/]+)', $route['uri']);
+            if (preg_match('#^' . $pattern . '$#', $uri, $matches) && $route['method'] === strtoupper($method)) {
+                Middleware::resolve($route['middleware']);
+
+                array_shift($matches);
+                if (strpos($route['controller'], '@')) {
+                    list($controller, $method) = explode('@', $route['controller']);
+                    $this->useController($controller, $method, $matches);
+                } else {
+                    return require base_path('Http/controllers/' . $route['controller']);
+                }
+            }
+        }
+        $this->abort();
     }
+
+    function useController($controller, $method, $params = [])
+    {
+        $controllerPath = base_path("Http/controllers/$controller.php");
+        if (file_exists($controllerPath)) {
+            require $controllerPath;
+
+            $controllerClass = "Http\\controllers\\$controller";
+            $controllerInstance = new $controllerClass;
+            call_user_func_array([$controllerInstance, $method], $params);
+        } else {
+            throw new \Exception("Controller file not found: $controllerPath");
+        }
+    }
+/*    function useController($controller, $method, $params = []){
+
+        $controllerPath = base_path("Http/controllers/$controller.php");
+        if (file_exists($controllerPath)) {
+            require $controllerPath;
+
+            if (strpos($controller, '/')){
+                dd($controller);
+            }else{
+                $controllerInstance = new $controller;
+                $param = $params[1] ?? null;
+                call_user_func([$controllerInstance, $method], $param);
+            }
+        }
+    }*/
 
     public function previousUrl()
     {

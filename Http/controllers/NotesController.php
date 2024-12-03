@@ -1,6 +1,7 @@
 <?php
 
 namespace Http\controllers;
+
 use Core\App;
 use Core\Database;
 use Core\Session;
@@ -8,7 +9,8 @@ use Core\Validator;
 use dao\INotesControllerDao;
 
 
-class NotesController implements INotesControllerDao{
+class NotesController implements INotesControllerDao
+{
     private $db;
     private $currentUserId;
 
@@ -60,10 +62,14 @@ class NotesController implements INotesControllerDao{
         ]);
     }
 
-    public function show()
-    {
+    public function show(){
         $note = $this->getNoteById($_GET['id']);
         $this->authorizeNoteOwner($note);
+
+        if ($note) {
+            header("Location: /notes/{$note['id']}");
+            exit();
+        }
 
         view("notes/show.view.php", [
             'heading' => 'Note',
@@ -112,10 +118,6 @@ class NotesController implements INotesControllerDao{
 
         $this->redirectTo('/notes');
     }
-
-    // ---------------------------
-    // Métodos auxiliares
-    // ---------------------------
 
     private function getNoteById($id)
     {

@@ -110,13 +110,11 @@ class Router
         }
         $this->abort();
     }
-
     function useController($controller, $method, $params = [])
     {
         $controllerPath = base_path("Http/controllers/$controller.php");
         if (file_exists($controllerPath)) {
             require $controllerPath;
-
             $controllerClass = "Http\\controllers\\$controller";
             $controllerInstance = new $controllerClass;
             call_user_func_array([$controllerInstance, $method], $params);
@@ -154,3 +152,39 @@ class Router
         die();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

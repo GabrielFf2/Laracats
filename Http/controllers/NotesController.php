@@ -30,7 +30,13 @@ class NotesController implements INotesControllerDao
 
     public function destroy()
     {
-        $note = $this->getNoteById($_POST['id']);
+        // Obtener la URL actual
+        $url = $_SERVER['REQUEST_URI'];
+
+        // Dividir la URL por '/' y tomar el último segmento
+        $segments = explode('/', $url);
+        $id = end($segments);
+        $note = $this->getNoteById($id);
         $this->authorizeNoteOwner($note);
 
         $this->db->query('DELETE FROM notes WHERE id = :id', ['id' => $_POST['id']]);
@@ -40,7 +46,13 @@ class NotesController implements INotesControllerDao
 
     public function edit()
     {
-        $note = $this->getNoteById($_GET['id']);
+        // Obtener la URL actual
+        $url = $_SERVER['REQUEST_URI'];
+        // Dividir la URL por '/' y tomar el último segmento
+        $segments = explode('/', $url);
+        $id = $segments[2];
+
+        $note = $this->getNoteById($id);
         $this->authorizeNoteOwner($note);
 
         view("notes/edit.view.php", [
@@ -63,13 +75,15 @@ class NotesController implements INotesControllerDao
     }
 
     public function show(){
-        $note = $this->getNoteById($_GET['id']);
-        $this->authorizeNoteOwner($note);
+        // Obtener la URL actual
+        $url = $_SERVER['REQUEST_URI'];
 
-        if ($note) {
-            header("Location: /notes/{$note['id']}");
-            exit();
-        }
+        // Dividir la URL por '/' y tomar el último segmento
+        $segments = explode('/', $url);
+        $id = end($segments);
+
+        $note = $this->getNoteById($id);
+        $this->authorizeNoteOwner($note);
 
         view("notes/show.view.php", [
             'heading' => 'Note',

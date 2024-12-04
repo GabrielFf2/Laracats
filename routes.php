@@ -18,3 +18,17 @@ $router->post('/register', 'RegistrationController@store')->only('guest');
 $router->get('/login', 'SessionController@create')->only('guest');
 $router->post('/session', 'SessionController@store')->only('guest');
 $router->delete('/session', 'SessionController@destroy')->only('auth');
+
+
+$router->post('/api/session', 'SessionController@store')->only('token');
+$router->delete('/api/session', 'SessionController@destroy')->only('token');
+
+$router->get('/api/notes', 'NotesController@index')->only('token');
+$router->post('/api/notes', 'NotesController@store')->only('token');
+$router->get('/api/notes/create', 'NotesController@create')->only('token');
+$router->get('/api/notes/{id}', 'NotesController@show')->only('token');
+$router->patch('/api/notes/{id}', 'NotesController@update')->only('token');
+$router->delete('/api/notes/{id}', 'NotesController@destroy')->only('token');
+$router->get('/api/notes/{id}/edit', 'NotesController@edit')->only('token');
+
+

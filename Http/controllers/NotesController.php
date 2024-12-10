@@ -82,6 +82,11 @@ class NotesController
         $id = end($segments);
 
         $note = $noteDao->getNoteDAO()->getNoteById($id);
+        if (str_starts_with($_SERVER['REQUEST_URI'], '/api/')) {
+            header('Content-Type: application/json');
+            echo json_encode($note);
+            exit();
+        }
         $this->authorizeNoteOwner($note);
 
         view("notes/show.view.php", [

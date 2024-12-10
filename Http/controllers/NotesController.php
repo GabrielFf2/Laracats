@@ -60,9 +60,11 @@ class NotesController
         $noteDao = new DAOFactory();
         $notes = $noteDao->getNoteDAO()->getNotes($user['id']);
 
-        echo json_encode($notes);
-        exit();
-
+        if (str_starts_with($_SERVER['REQUEST_URI'], '/api/')) {
+            header('Content-Type: application/json');
+            echo json_encode($notes);
+            exit();
+        }
         view("notes/index.view.php", [
             'heading' => 'My Notes',
             'notes' => $notes

@@ -10,5 +10,6 @@ class Authenticated
             header('location: /');
             exit();
         }
+        return $_SESSION['user'];
     }
 }

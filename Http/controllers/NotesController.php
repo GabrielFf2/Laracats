@@ -2,13 +2,9 @@
 
 namespace Http\controllers;
 
-use Core\App;
-use Core\Database;
 use Core\Session;
 use Core\Validator;
 use dao\DAOFactory;
-use dao\INotesControllerDao;
-use dao\notesDao;
 
 
 class NotesController
@@ -24,16 +20,15 @@ class NotesController
 
     }
 
-    public function destroy($param, $user, $request)
+    public function destroy()
     {
         $noteDao = new DAOFactory();
-        // Obtener la URL actual
-        $url = $_SERVER['REQUEST_URI'];
 
-        // Dividir la URL por '/' y tomar el último segmento
+        $url = $_SERVER['REQUEST_URI'];
         $segments = explode('/', $url);
+
         $id = end($segments);
-        $note = $this->getNoteById($id);
+        $note = $noteDao->getNoteDAO()->getNoteById($id);
         $this->authorizeNoteOwner($note);
 
         $noteDao->getNoteDAO()->deleteNote($id);
@@ -43,13 +38,14 @@ class NotesController
 
     public function edit()
     {
+        $noteDao = new DAOFactory();
         // Obtener la URL actual
         $url = $_SERVER['REQUEST_URI'];
         // Dividir la URL por '/' y tomar el último segmento
         $segments = explode('/', $url);
         $id = $segments[2];
 
-        $note = $this->getNoteById($id);
+        $note = $noteDao->getNoteDAO()->getNoteById($id);
         $this->authorizeNoteOwner($note);
 
         view("notes/edit.view.php", [
@@ -59,19 +55,20 @@ class NotesController
         ]);
     }
 
-    public function index($param, $user, $request)
+    public function index()
     {
         $noteDao = new DAOFactory();
-        $notes = $noteDao->getNoteDAO()->getNotes($user['idUser']);
-
+        $notes = $noteDao->getNoteDAO()->getNotes($_SESSION['user']['id']);
 
         view("notes/index.view.php", [
             'heading' => 'My Notes',
             'notes' => $notes
         ]);
+
     }
 
     public function show(){
+        $noteDao = new DAOFactory();
         // Obtener la URL actual
         $url = $_SERVER['REQUEST_URI'];
 
@@ -79,7 +76,7 @@ class NotesController
         $segments = explode('/', $url);
         $id = end($segments);
 
-        $note = $this->getNoteById($id);
+        $note = $noteDao->getNoteDAO()->getNoteById($id);
         $this->authorizeNoteOwner($note);
 
         view("notes/show.view.php", [
@@ -90,7 +87,9 @@ class NotesController
 
     public function store()
     {
-        $errors = $this->validateNoteBody($_POST['body'], 1, 1000);
+        $body = $_POST['body'];
+        $noteDao = new DAOFactory();
+        $errors = $this->validateNoteBody($body, 1, 1000);
 
         if (!empty($errors)) {
             return view("notes/create.view.php", [
@@ -99,17 +98,15 @@ class NotesController
             ]);
         }
 
-        $this->db->query('INSERT INTO notes(body, user_id) VALUES(:body, :user_id)', [
-            'body' => $_POST['body'],
-            'user_id' => $this->currentUserId
-        ]);
+        $noteDao->getNoteDAO()->createNote($_SESSION['user']['id'], $body);
 
         $this->redirectTo('/notes');
     }
 
     public function update()
     {
-        $note = $this->getNoteById($_POST['id']);
+        $noteDao = new DAOFactory();
+        $note = $noteDao->getNoteDAO()->getNoteById($_POST['id']);
         $this->authorizeNoteOwner($note);
 
         $errors = $this->validateNoteBody($_POST['body'], 1, 1000);
@@ -122,23 +119,21 @@ class NotesController
             ]);
         }
 
-        $this->db->query('UPDATE notes SET body = :body WHERE id = :id', [
-            'body' => $_POST['body'],
-            'id' => $_POST['id']
-        ]);
+        $noteDao->getNoteDAO()->updateNote($_POST['id'], $_POST['body']);
 
         $this->redirectTo('/notes');
     }
 
     private function getNoteById($id)
     {
-        return $this->db->query('SELECT * FROM notes WHERE id = :id', ['id' => $id])
-            ->findOrFail();
+        $noteDao = new DAOFactory();
+
+        return $noteDao->getNoteDAO()->getNoteById($id);
     }
 
     private function authorizeNoteOwner($note)
     {
-        authorize($note['user_id'] === $this->currentUserId);
+        authorize($note['user_id'] === $_SESSION['user']['id']);
     }
 
     private function validateNoteBody($body, $minLength, $maxLength)

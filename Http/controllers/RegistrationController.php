@@ -1,13 +1,17 @@
 <?php
 
 namespace Http\controllers;
-use Core\App;
-use Core\Database;
+
 use Core\Validator;
 use Core\Authenticator;
-class RegistrationController{
+use dao\DAOFactory;
 
-    public function __construct(){}
+class RegistrationController
+{
+
+    public function __construct()
+    {
+    }
 
     public function create()
     {
@@ -18,20 +22,39 @@ class RegistrationController{
 
     public function store()
     {
-        $form = \Http\Forms\RegistrationForm::validate($attributes = [
-            'email' => $_POST['email'],
-            'password' => $_POST['password']
-        ]);
+        $UseDao = new DAOFactory();
 
-        $user = (new \Core\Authenticator)->register($attributes);
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+        $apiKey = bin2hex(random_bytes(16)); // Generate a random API key
 
-        if (!$user) {
-            $form->error(
-                'email', 'An account with that email address already exists.'
-            )->throw();
+        $errors = [];
+        if (!Validator::email($email)) {
+            $errors['email'] = 'Please provide a valid email address.';
         }
 
-        redirect('/');
-    }
+        if (!Validator::string($password, 7, 255)) {
+            $errors['password'] = 'Please provide a password of at least seven characters.';
+        }
 
+        if (! empty($errors)) {
+            return view('registration/create.view.php', [
+                'errors' => $errors
+            ]);
+        }
+
+        $user = $UseDao->getUserDAO()->selectUser($email);
+
+        if ($user) {
+            header('location: /');
+            exit();
+        } else {
+            $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+            $UseDao->getUserDAO()->insertUser($email, $passwordHash, $apiKey);
+            $user = $UseDao->getUserDAO()->selectUser($email);
+            (new Authenticator)->login(['idUser' => $user['id'], 'email' => $email]);
+            header('location: /');
+            exit();
+        }
+    }
 }

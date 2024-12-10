@@ -26,6 +26,7 @@ class AuthenticatedToken
             echo json_encode(['message' => 'Unauthorized']);
             exit();
         }
+
         return $user;
     }
 }

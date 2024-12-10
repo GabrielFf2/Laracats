@@ -1,8 +1,9 @@
 RewriteEngine On
 RewriteBase /
+
 DirectoryIndex public/index.php
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ public/index.php [L]
-
 #RewriteRule ^(.*)$ index.php?PATH_INFO=$1 [L,QSA]

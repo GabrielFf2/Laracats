@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use dao\DAOFactory;
+
 class Authenticator
 {
 
@@ -15,7 +17,7 @@ class Authenticator
         if ($user) {
             if (password_verify($password, $user['password'])) {
                 $tocken = bin2hex(random_bytes(32));
-                $this->insertTocken($tocken,$user['id']);
+              /*  $this->insertTocken($tocken,$user['id']);*/
                 $this->login([
                     'email' => $email,
                     'id' => $user['id'],
@@ -52,17 +54,11 @@ class Authenticator
         $UseDao = new DAOFactory();
         $tokenSelect = $UseDao->getUserDAO()->selectUserByToken($token);
         if ($tokenSelect) {
-            if (strtotime($tokenSelect['token_expired']) > strtotime(date('Y-m-d H:i:s'))) {
-                $user = [
-                    'idUser' => $tokenSelect['idUser'],
-                    'email' => $tokenSelect['email'],
-                    'token' => $tokenSelect['token']
-                ];
-                return $user;
-            } else {
-                $UseDao->getUserDAO()->deleteUserToken($tokenSelect['idUser']);
-                return null;
-            }
+            return [
+                'idUser' => $tokenSelect['id'],
+                'email' => $tokenSelect['email'],
+                'token' => $tokenSelect['apiKey']
+            ];
         }
         return null;
     }
@@ -74,13 +70,12 @@ class Authenticator
             'email' => $user['email'],
             'id' => $user['id']
         ];
-
         session_regenerate_id(true);
     }
 
     public function logout()
     {
-        $this->deleteTocken($_SESSION['user']['id']);
+        //$this->deleteTocken($_SESSION['user']['id']);
         Session::destroy();
     }
 }

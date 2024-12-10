@@ -9,7 +9,7 @@ class Database
     public PDO $connection;
     public $statement;
 
-    public function __construct($config, $username = 'root', $password = 'gabri')
+    public function __construct($config, $username = 'root', $password = 'root')
     {
         $dsn = 'mysql:' . http_build_query($config, '', ';');
 

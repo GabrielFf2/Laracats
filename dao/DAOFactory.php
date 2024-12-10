@@ -15,6 +15,10 @@ class DAOFactory
         }
         return self::$database;
     }
+    public function getUserDAO()
+    {
+        return new UserDao(self::$database);
+    }
     public function getNoteDAO()
     {
         return new notesDao(self::$database);

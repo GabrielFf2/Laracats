@@ -122,22 +122,6 @@ class Router
             throw new \Exception("Controller file not found: $controllerPath");
         }
     }
-/*    function useController($controller, $method, $params = []){
-
-        $controllerPath = base_path("Http/controllers/$controller.php");
-        if (file_exists($controllerPath)) {
-            require $controllerPath;
-
-            if (strpos($controller, '/')){
-                dd($controller);
-            }else{
-                $controllerInstance = new $controller;
-                $param = $params[1] ?? null;
-                call_user_func([$controllerInstance, $method], $param);
-            }
-        }
-    }*/
-
     public function previousUrl()
     {
         return $_SERVER['HTTP_REFERER'];

@@ -55,10 +55,13 @@ class NotesController
         ]);
     }
 
-    public function index()
+    public function index($parameter ,$user)
     {
         $noteDao = new DAOFactory();
-        $notes = $noteDao->getNoteDAO()->getNotes($_SESSION['user']['id']);
+        $notes = $noteDao->getNoteDAO()->getNotes($user['id']);
+
+        echo json_encode($notes);
+        exit();
 
         view("notes/index.view.php", [
             'heading' => 'My Notes',

@@ -55,7 +55,7 @@ class Authenticator
         $tokenSelect = $UseDao->getUserDAO()->selectUserByToken($token);
         if ($tokenSelect) {
             return [
-                'idUser' => $tokenSelect['id'],
+                'id' => $tokenSelect['id'],
                 'email' => $tokenSelect['email'],
                 'token' => $tokenSelect['apiKey']
             ];

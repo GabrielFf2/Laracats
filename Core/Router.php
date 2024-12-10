@@ -97,12 +97,11 @@ class Router
         foreach ($this->routes as $route) {
             $pattern = preg_replace('/\{[^\}]+\}/', '([^/]+)', $route['uri']);
             if (preg_match('#^' . $pattern . '$#', $uri, $matches) && $route['method'] === strtoupper($method)) {
-                Middleware::resolve($route['middleware']);
-
+                $user = Middleware::resolve($route['middleware']);
                 array_shift($matches);
                 if (strpos($route['controller'], '@')) {
                     list($controller, $method) = explode('@', $route['controller']);
-                    $this->useController($controller, $method, $matches);
+                    $this->useController($controller, $method, $matches, $user);
                 } else {
                     return require base_path('Http/controllers/' . $route['controller']);
                 }
@@ -110,14 +109,14 @@ class Router
         }
         $this->abort();
     }
-    function useController($controller, $method, $params = [])
+    function useController($controller, $method, $params = [], $user = null)
     {
         $controllerPath = base_path("Http/controllers/$controller.php");
         if (file_exists($controllerPath)) {
             require $controllerPath;
             $controllerClass = "Http\\controllers\\$controller";
             $controllerInstance = new $controllerClass;
-            call_user_func_array([$controllerInstance, $method], $params);
+            call_user_func_array([$controllerInstance, $method], [$params, $user, true]);
         } else {
             throw new \Exception("Controller file not found: $controllerPath");
         }

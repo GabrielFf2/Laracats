@@ -6,30 +6,27 @@ use Core\App;
 use Core\Database;
 use Core\Session;
 use Core\Validator;
+use dao\DAOFactory;
 use dao\INotesControllerDao;
+use dao\notesDao;
 
 
-class NotesController implements INotesControllerDao
+class NotesController
 {
-    private $db;
-    private $currentUserId;
-
-    public function __construct()
-    {
-        $this->db = App::resolve(Database::class);
-        $this->currentUserId = Session::get('user')['id'];
-    }
 
     public function create()
     {
+
         view("notes/create.view.php", [
             'heading' => 'Create Note',
             'errors' => []
         ]);
+
     }
 
-    public function destroy()
+    public function destroy($param, $user, $request)
     {
+        $noteDao = new DAOFactory();
         // Obtener la URL actual
         $url = $_SERVER['REQUEST_URI'];
 
@@ -39,7 +36,7 @@ class NotesController implements INotesControllerDao
         $note = $this->getNoteById($id);
         $this->authorizeNoteOwner($note);
 
-        $this->db->query('DELETE FROM notes WHERE id = :id', ['id' => $_POST['id']]);
+        $noteDao->getNoteDAO()->deleteNote($id);
 
         $this->redirectTo('/notes');
     }
@@ -62,11 +59,11 @@ class NotesController implements INotesControllerDao
         ]);
     }
 
-    public function index()
+    public function index($param, $user, $request)
     {
-        $notes = $this->db->query('SELECT * FROM notes WHERE user_id = :id', [
-            'id' => $this->currentUserId
-        ])->get();
+        $noteDao = new DAOFactory();
+        $notes = $noteDao->getNoteDAO()->getNotes($user['idUser']);
+
 
         view("notes/index.view.php", [
             'heading' => 'My Notes',

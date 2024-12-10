@@ -4,6 +4,7 @@ namespace Core;
 
 class Authenticator
 {
+
     public function attempt($email, $password)
     {
         $user = App::resolve(Database::class)
@@ -46,12 +47,26 @@ class Authenticator
 
     }
 
-    public function selectUserByTocken($tocken){
-        return App::resolve(Database::class)
-            ->query('SELECT * FROM tockens WHERE tocken = :tocken', [
-                'tocken' => $tocken
-            ])->find();
+    public function tokenAuthenticated($token)
+    {
+        $UseDao = new DAOFactory();
+        $tokenSelect = $UseDao->getUserDAO()->selectUserByToken($token);
+        if ($tokenSelect) {
+            if (strtotime($tokenSelect['token_expired']) > strtotime(date('Y-m-d H:i:s'))) {
+                $user = [
+                    'idUser' => $tokenSelect['idUser'],
+                    'email' => $tokenSelect['email'],
+                    'token' => $tokenSelect['token']
+                ];
+                return $user;
+            } else {
+                $UseDao->getUserDAO()->deleteUserToken($tokenSelect['idUser']);
+                return null;
+            }
+        }
+        return null;
     }
+
 
     public function login($user)
     {

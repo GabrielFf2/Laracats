@@ -40,21 +40,13 @@ class SessionController{
 
     public function update ()
     {
-        $form = LoginForm::validate($attributes = [
-            'tel' => $_POST['tel'],
-            'nom' => $_POST['nom'],
-            'cognom' => $_POST['cognom'],
-        ]);
 
-        $signedIn = (new Authenticator)->attempt(
-            $attributes['tel'], $attributes['nom'], $attributes['cognom']
-        );
+        $idUser = $_POST['idUser'];
+        $tel = $_POST['tel'];
+        $nom = $_POST['nom'];
+        $cognom = $_POST['cognom'];
 
-        if (!$signedIn) {
-            $form->error(
-                'email', 'No matching account found for that email address and password.'
-            )->throw();
-        }
+        (new Authenticator)->update($idUser, $tel, $nom, $cognom);
 
         redirect('/');
     }
@@ -65,9 +57,18 @@ class SessionController{
         exit();
     }
 
-    public function destroyTockens($user){
-        
-        (new Authenticator)->deleteTockens($user['id']);
+    public function destroyTocken(){
+
+        $idUser = $_POST['idUser'];
+        $token = $_POST['tocken'];
+        (new Authenticator)->deleteTocken($idUser , $token);
+        header('location: /');
+        exit();
+    }
+    public function destroyTockens(){
+
+        $idUser = $_POST['idUser'];
+        (new Authenticator)->deleteTockens($idUser);
         header('location: /');
         exit();
     }

@@ -51,6 +51,14 @@ class Authenticator
             ]);
 
     }
+    public function deleteTocken($idUser , $token)
+    {
+        return App::resolve(Database::class)
+            ->query('DELETE FROM tokens WHERE idUser = :idUser and token = :token', [
+                'idUser' => $idUser,
+                'token' => $token
+            ]);
+    }
 
     public function tokenAuthenticated($token)
     {
@@ -60,7 +68,7 @@ class Authenticator
             return [
                 'id' => $tokenSelect['id'],
                 'email' => $tokenSelect['email'],
-                'token' => $tokenSelect['apiKey']
+                'token' => $tokenSelect['tocken']
             ];
         }
         return null;
@@ -75,20 +83,16 @@ class Authenticator
 
     public function logout()
     {
-        //$this->deleteTocken($_SESSION['user']['id']);
         Session::destroy();
     }
-    public function update($email ,$tel , $nom , $cognom){
+    public function update($id,$tel, $nom, $cognom){
 
-        $user = App::resolve(Database::class)
-            ->query('select * from users where email = :email', [
-                'email' => $email
-            ])->find();
-
-        if ($user) {
-            $this->update($tel , $nom , $cognom , $email);
-            return true;
-        }
-        return false;
+        return App::resolve(Database::class)
+            ->query('UPDATE users SET tel = :tel, nom = :nom, cognom = :cognom WHERE id = :id', [
+                'id' => $id,
+                'tel' => $tel,
+                'nom' => $nom,
+                'cognom' => $cognom
+            ]);
     }
 }

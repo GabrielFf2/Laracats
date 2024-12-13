@@ -65,4 +65,11 @@ class SessionController{
         exit();
     }
 
+    public function destroyTockens($user){
+        
+        (new Authenticator)->deleteTockens($user['id']);
+        header('location: /');
+        exit();
+    }
+
 }

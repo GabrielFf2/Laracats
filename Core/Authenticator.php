@@ -42,7 +42,7 @@ class Authenticator
             ]);
     }
 
-    public function deleteTocken($idUser)
+    public function deleteTockens($idUser)
     {
 
         return App::resolve(Database::class)

@@ -23,6 +23,8 @@ $router->delete('/session', 'SessionController@destroy')->only('auth');
 $router->post('/api/session', 'SessionController@store')->only('token');
 $router->delete('/api/session', 'SessionController@destroy')->only('token');
 $router->delete('/api/session', 'SessionController@update')->only('token');
+$router->delete('/api/delTockens', 'SessionController@destroyTockens')->only('token');
+
 
 
 $router->get('/api/notes', 'NotesController@index')->only('token');

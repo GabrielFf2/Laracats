@@ -31,7 +31,7 @@ class UserDao implements IUserDao
 
     public function selectUserByToken($token)
     {
-        $sql = "Select * from users where apiKey = :token";
+        $sql = "Select idUser from tokens where token = :token and expire > NOW()";
         return $this->connection->query($sql, [
             'token' => $token
         ])->find();

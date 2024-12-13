@@ -38,6 +38,27 @@ class SessionController{
         redirect('/');
     }
 
+    public function update ()
+    {
+        $form = LoginForm::validate($attributes = [
+            'tel' => $_POST['tel'],
+            'nom' => $_POST['nom'],
+            'cognom' => $_POST['cognom'],
+        ]);
+
+        $signedIn = (new Authenticator)->attempt(
+            $attributes['tel'], $attributes['nom'], $attributes['cognom']
+        );
+
+        if (!$signedIn) {
+            $form->error(
+                'email', 'No matching account found for that email address and password.'
+            )->throw();
+        }
+
+        redirect('/');
+    }
+
     public function destroy(){
         (new Authenticator)->logout();
         header('location: /');

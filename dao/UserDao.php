@@ -63,4 +63,14 @@ class UserDao implements IUserDao
             'cognom' => $cognom
         ]);
     }
+
+    public function updateUserApi($tel, $nom, $cognom)
+    {
+        return $this->connection->query('UPDATE users SET tel = :tel, nom = :nom, cognom = :cognom WHERE email = :email', [
+            'tel' => $tel,
+            'nom' => $nom,
+            'cognom' => $cognom,
+            'email' => $_SESSION['user']['email']
+        ]);
+    }
 }

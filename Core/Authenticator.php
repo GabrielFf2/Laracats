@@ -3,6 +3,7 @@
 namespace Core;
 
 use dao\DAOFactory;
+use Http\Forms\LoginForm;
 
 class Authenticator
 {
@@ -37,7 +38,7 @@ class Authenticator
             ->query('INSERT INTO tokens (token , idUser , expire) VALUES (:token , :idUser , :expire)', [
                 'token' => $token,
                 'idUser' => $idUser,
-                'expire' => date('Y-m-d H:i:s', strtotime('+1 hour'))
+                'expire' => date('Y-m-d H:i:s', strtotime('+2 hour'))
             ]);
     }
 
@@ -76,5 +77,18 @@ class Authenticator
     {
         //$this->deleteTocken($_SESSION['user']['id']);
         Session::destroy();
+    }
+    public function update($email ,$tel , $nom , $cognom){
+
+        $user = App::resolve(Database::class)
+            ->query('select * from users where email = :email', [
+                'email' => $email
+            ])->find();
+
+        if ($user) {
+            $this->update($tel , $nom , $cognom , $email);
+            return true;
+        }
+        return false;
     }
 }

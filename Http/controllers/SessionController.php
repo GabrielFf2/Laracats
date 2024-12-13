@@ -2,6 +2,8 @@
 
 namespace Http\controllers;
 use Core\Authenticator;
+use dao\DAOFactory;
+use dao\UserDao;
 use Http\Forms\LoginForm;
 use Core\Session;
 class SessionController{
@@ -30,6 +32,9 @@ class SessionController{
                 'email', 'No matching account found for that email address and password.'
             )->throw();
         }
+
+
+
         redirect('/');
     }
 

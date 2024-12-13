@@ -26,8 +26,13 @@ class RegistrationController
 
         $email = $_POST['email'];
         $password = $_POST['password'];
-        $apiKey = bin2hex(random_bytes(16)); // Generate a random API key
 
+        $userDao = new DAOFactory();
+
+        if (str_starts_with($_SERVER['REQUEST_URI'], '/api/')) {
+            header('Content-Type: application/json');
+            $userDao->getUserDAO()->insertUserApi($_POST['email'], $_POST['password'], $_POST['tel'], $_POST['nom'], $_POST['cognom']);
+        }
         $errors = [];
         if (!Validator::email($email)) {
             $errors['email'] = 'Please provide a valid email address.';
@@ -50,9 +55,9 @@ class RegistrationController
             exit();
         } else {
             $passwordHash = password_hash($password, PASSWORD_BCRYPT);
-            $UseDao->getUserDAO()->insertUser($email, $passwordHash, $apiKey);
+            $UseDao->getUserDAO()->insertUser($email, $passwordHash);
             $user = $UseDao->getUserDAO()->selectUser($email);
-            (new Authenticator)->login(['idUser' => $user['id'], 'email' => $email]);
+            (new Authenticator)->login(['id' => $user['id'], 'email' => $email]);
             header('location: /');
             exit();
         }

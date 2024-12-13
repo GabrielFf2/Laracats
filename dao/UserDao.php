@@ -20,14 +20,14 @@ class UserDao implements IUserDao
         ])->find();
     }
 
-    public function insertUser($email, $password, $apiKey)
+    public function insertUser($email, $password)
     {
-        return $this->connection->query('INSERT INTO users (email, password, apiKey) VALUES (:email, :password, :apiKey)', [
+        return $this->connection->query('INSERT INTO users(email, password) VALUES(:email, :password)', [
             'email' => $email,
             'password' => $password,
-            'apiKey' => $apiKey
         ]);
     }
+
 
     public function selectUserByToken($token)
     {
@@ -50,6 +50,17 @@ class UserDao implements IUserDao
     {
         return $this->connection->query('DELETE FROM tokens WHERE idUser = :idUser', [
             'idUser' => $idUser
+        ]);
+    }
+
+    public function insertUserApi($email, $password, $tel, $nom, $cognom)
+    {
+        return $this->connection->query('INSERT INTO users (email, password, tel, nom, cognom) VALUES (:email, :password, :tel, :nom, :cognom)', [
+            'email' => $email,
+            'password' => $password,
+            'tel' => $tel,
+            'nom' => $nom,
+            'cognom' => $cognom
         ]);
     }
 }
